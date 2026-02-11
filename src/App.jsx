@@ -3,25 +3,14 @@ import { useEffect, useState } from 'react';
 import { ToDoForm } from './components/ToDoForm/ToDoForm';
 import { ToDoList } from './components/ToDoList/ToDoList';
 import { ToDoFilters } from './components/ToDoFilters/ToDoFilters';
+import { api } from './api';
 
 function App() {
   const [todos, setToDos] = useState([]);
   const [filters, setFilters] = useState({});
 
   function fetchTodos() {
-    const searchParams = new URLSearchParams(filters).toString();
-    fetch(`${import.meta.env.VITE_MOCKAPI_BASE_URL}/todos?${searchParams}`, {
-    method: 'GET',
-    headers: {'content-type':'application/json'},
-    })
-      .then((response) => {
-        if (response.ok) return response.json();
-          if (response.status === 404) return [];
-      })
-      .then(setToDos).
-      catch(error => {
-        console.log(error);
-      })
+    api.todos.getAll(filters).then(setToDos);
   }
 
   useEffect(() => {
@@ -29,40 +18,15 @@ function App() {
   }, [filters])
 
   function handleCreate(newTodo) {
-    fetch(`${import.meta.env.VITE_MOCKAPI_BASE_URL}/todos`, {
-    method: 'POST',
-    headers: {'content-type':'application/json'},
-    body: JSON.stringify(newTodo)
-    })
-      .then((response) => !!response.ok && response.json())
-      .then(fetchTodos).
-      catch(error => {
-        console.log(error);
-      })
+    api.todos.create(newTodo).then(fetchTodos);
   }
 
   function handleUpdate(id, newTodo) {
-    fetch(`${import.meta.env.VITE_MOCKAPI_BASE_URL}/todos/${id}`, {
-    method: 'PUT',
-    headers: {'content-type':'application/json'},
-    body: JSON.stringify(newTodo)
-    })
-      .then((response) => !!response.ok && response.json())
-      .then(fetchTodos).
-      catch(error => {
-        console.log(error);
-      })
+    api.todos.update(id, newTodo).then(fetchTodos);
   }
 
   function handleDelete(id) {
-    fetch(`${import.meta.env.VITE_MOCKAPI_BASE_URL}/todos/${id}`, {
-    method: 'DELETE',
-    })
-      .then((response) => !!response.ok && response.json())
-      .then(fetchTodos).
-      catch(error => {
-        console.log(error);
-      })
+    api.todos.delete(id).then(fetchTodos);
   }
 
   return (
