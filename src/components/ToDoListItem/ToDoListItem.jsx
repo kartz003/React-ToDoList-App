@@ -38,7 +38,7 @@ export function ToDoListItem({ todo, onUpdate, onDelete }) {
                     {todo.priority !== PRIORITY_DEFAULT && (<span style={{ color: PRIORITIES[todo.priority].color }}> {PRIORITIES[todo.priority].label}</span>)}
                 </div>
             </div>
-            <div className="styles.Controls">
+            <div className={styles.Controls}>
                 <button onClick={() => setIsEditing(true)}> 📝 </button>
                 <button onClick={() => onDelete(todo.id)}> 🗑️ </button>
             </div>
