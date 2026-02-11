@@ -1,68 +1,68 @@
 import styles from './App.module.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ToDoForm } from './components/ToDoForm/ToDoForm';
 import { ToDoList } from './components/ToDoList/ToDoList';
 import { ToDoFilters } from './components/ToDoFilters/ToDoFilters';
 
-const TODOS_DEFAULT = [
-  {
-    id: "1",
-    task: "Buy an Ice Cream",
-    description: "The white one with chocolate",
-    deadline: "2025-02-09",
-    priority: "low",
-    completed: false,
-  },
-  {
-    id: "2",
-    task: "Sell old MacBook Pro 2025",
-    description: "Try to sell it on OLX",
-    deadline: "2025-02-28",
-    priority: "high",
-    completed: false,
-  },
-  {
-    id: "3",
-    task: "Charge Powerbank",
-    description: "For the next travelling",
-    deadline: "2025-02-15",
-    priority: "medium",
-    completed: true,
-  },
-  {
-    id: "4",
-    task: "Test Todo onlye with a name",
-    description: "",
-    deadline: "",
-    priority: "none",
-    completed: false,
-  },
-];
-
 function App() {
-  const [todos, setToDos] = useState(TODOS_DEFAULT);
+  const [todos, setToDos] = useState([]);
   const [filters, setFilters] = useState({});
 
+  function fetchTodos() {
+    const searchParams = new URLSearchParams(filters).toString();
+    fetch(`${import.meta.env.VITE_MOCKAPI_BASE_URL}/todos?${searchParams}`, {
+    method: 'GET',
+    headers: {'content-type':'application/json'},
+    })
+      .then((response) => {
+        if (response.ok) return response.json();
+          if (response.status === 404) return [];
+      })
+      .then(setToDos).
+      catch(error => {
+        console.log(error);
+      })
+  }
+
+  useEffect(() => {
+    fetchTodos();
+  }, [filters])
+
   function handleCreate(newTodo) {
-    setToDos((prevTodos) => [
-      ...prevTodos,
-      {id: `${prevTodos.length + 1}`, ...newTodo}
-    ]);
+    fetch(`${import.meta.env.VITE_MOCKAPI_BASE_URL}/todos`, {
+    method: 'POST',
+    headers: {'content-type':'application/json'},
+    body: JSON.stringify(newTodo)
+    })
+      .then((response) => !!response.ok && response.json())
+      .then(fetchTodos).
+      catch(error => {
+        console.log(error);
+      })
   }
 
   function handleUpdate(id, newTodo) {
-    setToDos((prevTodos) => prevTodos.map((todo) => todo.id === id ? newTodo : todo));
+    fetch(`${import.meta.env.VITE_MOCKAPI_BASE_URL}/todos/${id}`, {
+    method: 'PUT',
+    headers: {'content-type':'application/json'},
+    body: JSON.stringify(newTodo)
+    })
+      .then((response) => !!response.ok && response.json())
+      .then(fetchTodos).
+      catch(error => {
+        console.log(error);
+      })
   }
 
   function handleDelete(id) {
-    setToDos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
-  }
-
-  function filterToDos(todo) {
-    const {completed, priority} = filters;
-    return (
-      (completed === "" || todo.completed === completed) && (priority === "" || todo.priority === priority)
-    )
+    fetch(`${import.meta.env.VITE_MOCKAPI_BASE_URL}/todos/${id}`, {
+    method: 'DELETE',
+    })
+      .then((response) => !!response.ok && response.json())
+      .then(fetchTodos).
+      catch(error => {
+        console.log(error);
+      })
   }
 
   return (
@@ -75,7 +75,7 @@ function App() {
       <div className={styles.AppContainer}>
         <ToDoForm onCreate={handleCreate} />
         <ToDoFilters onFilters={setFilters} />
-        <ToDoList todos={todos.filter(filterToDos)} onUpdate={handleUpdate} onDelete={handleDelete}/>
+        <ToDoList todos={todos} onUpdate={handleUpdate} onDelete={handleDelete}/>
       </div>
     </div>
   )
